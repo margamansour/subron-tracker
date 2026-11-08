@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-single
+*.local
+.DS_Store
+# Your real P&L files stay on your machine only
+data/
