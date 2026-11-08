@@ -2,7 +2,7 @@ import { useApp } from '../state';
 import { investorHistory, ledgerXirr } from '../lib/analysis';
 import { usd, pct, signedUsd } from '../lib/money';
 import { Card, Stat, toneOf } from '../components/ui';
-import { HISTORY_NOTES } from '../lib/notes';
+import { isAnomalyWeek } from '../lib/notes';
 import { TimeLines, WeeklyBars, longDate, shortDate, SERIES } from '../components/charts';
 
 /** Everything about one investor: cards, charts, best/worst weeks, full week-by-week table. */
@@ -16,7 +16,7 @@ export function InvestorDetail({ name }: { name: string }) {
   const weeks = Math.floor((Date.parse(ds.latest!.date) - Date.parse(startDate)) / (7 * 86400000));
   const lx = ledgerXirr(ds, name);
   const gains = hist.filter((h) => h.gain != null && h.date !== hist[0].date);
-  const ranked = gains.filter((h) => !ANOMALY.has(h.date));
+  const ranked = gains.filter((h) => !isAnomalyWeek(h.date));
   const best = [...ranked].sort((a, b) => (b.rate ?? -1e9) - (a.rate ?? -1e9)).slice(0, 5);
   const worst = [...ranked].sort((a, b) => (a.rate ?? 1e9) - (b.rate ?? 1e9)).slice(0, 5);
   const latestIsCurrent = cur.date === ds.latest!.date;
@@ -62,12 +62,10 @@ export function InvestorDetail({ name }: { name: string }) {
   );
 }
 
-const ANOMALY = new Set(HISTORY_NOTES.filter((n) => n.anomaly).map((n) => n.date));
-
 function WeekList({ rows }: { rows: ReturnType<typeof investorHistory> }) {
   return (
     <table><tbody>{rows.map((r) => (
-      <tr key={r.date}><td>{shortDate(r.date)}{ANOMALY.has(r.date) && <span className="badge fail" style={{ marginLeft: 6 }}>anomaly</span>}</td><td className={`num ${toneOf(r.gain) ?? ''}`}>{signedUsd(r.gain)}</td><td className="num">{r.rate != null ? `${r.rate.toFixed(4)}%` : '—'}</td></tr>
+      <tr key={r.date}><td>{shortDate(r.date)}{isAnomalyWeek(r.date) && <span className="badge fail" style={{ marginLeft: 6 }}>anomaly</span>}</td><td className={`num ${toneOf(r.gain) ?? ''}`}>{signedUsd(r.gain)}</td><td className="num">{r.rate != null ? `${r.rate.toFixed(4)}%` : '—'}</td></tr>
     ))}</tbody></table>
   );
 }

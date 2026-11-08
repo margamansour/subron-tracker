@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../state';
 import { project, rateStats } from '../lib/analysis';
 import { grossBase } from '../lib/rates';
-import { HISTORY_NOTES } from '../lib/notes';
+import { isAnomalyWeek } from '../lib/notes';
 import { usd, signedUsd } from '../lib/money';
 import { Card, Stat } from '../components/ui';
 import { TimeLines, longDate, SERIES } from '../components/charts';
@@ -10,8 +10,7 @@ import type { PageProps } from '../App';
 
 export function Projections(_: PageProps) {
   const { ds, settings } = useApp();
-  const anomalies = new Set(HISTORY_NOTES.filter((n) => n.anomaly).map((n) => n.date));
-  const last12 = ds.weeks.filter((w) => w.groupRate != null && !anomalies.has(w.date)).slice(-12).map((w) => w.groupRate!);
+  const last12 = ds.weeks.filter((w) => w.groupRate != null && !isAnomalyWeek(w.date)).slice(-12).map((w) => w.groupRate!);
   const st = rateStats(last12);
   const [rate, setRate] = useState((st.median ?? 0.5).toFixed(4));
   const [topUp, setTopUp] = useState('0');

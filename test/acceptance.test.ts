@@ -45,3 +45,21 @@ describe.skipIf(!existsSync(CSV))('acceptance: real history CSV', () => {
     expect(f.amount).toBeCloseTo(-11382.58, 2);
   });
 });
+
+describe.skipIf(!existsSync(CSV))('Jun 7 anomaly covers Jun 7 – Jun 28', () => {
+  const ds = buildDataset(parseHistoryCsv(readFileSync(CSV, 'utf8')));
+  const level = (d: string) => ds.checks.find((c) => c.date === d)!;
+  it('those four weeks are amber with the anomaly note, not red', () => {
+    for (const d of ['2026-06-07', '2026-06-14', '2026-06-21', '2026-06-28']) {
+      expect(level(d).level).toBe('warn');
+      expect(level(d).anomalyNote).toMatch(/Jun 28/);
+    }
+  });
+  it('weeks either side are unaffected', () => {
+    expect(level('2026-05-31').anomalyNote).toBeUndefined();
+    expect(level('2026-07-05').anomalyNote).toBeUndefined();
+  });
+  it('no red weeks remain in the CSV history', () => {
+    expect(ds.checks.filter((c) => c.level === 'fail').map((c) => c.date)).toEqual([]);
+  });
+});

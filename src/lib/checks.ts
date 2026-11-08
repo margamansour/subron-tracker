@@ -1,7 +1,7 @@
 import type { WeekReport } from './types';
 import type { Flow, WeekCalc } from './rates';
 import { flowsIn } from './rates';
-import { HISTORY_NOTES, KNOWN_RATE_ISSUES, STREAK_INVESTOR } from './notes';
+import { anomalyFor, KNOWN_RATE_ISSUES, STREAK_INVESTOR } from './notes';
 import { usd, signedUsd } from './money';
 
 export type Level = 'ok' | 'warn' | 'fail' | 'info';
@@ -39,7 +39,7 @@ export function runChecks(
 ): WeekChecks {
   const checks: CheckResult[] = [];
   const prevBy = new Map(prev?.investors.map((x) => [x.name, x]) ?? []);
-  const note = HISTORY_NOTES.find((n) => n.date === cur.date && n.anomaly);
+  const note = anomalyFor(cur.date);
 
   // 1. Invested + P&L = Available
   {

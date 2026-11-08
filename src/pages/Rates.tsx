@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../state';
 import { rateStats } from '../lib/analysis';
-import { HISTORY_NOTES, STREAK_INVESTOR } from '../lib/notes';
+import { anomalyLabel, HISTORY_NOTES, isAnomalyWeek, STREAK_INVESTOR } from '../lib/notes';
 import { lowRatioStreak } from '../lib/checks';
 import { Card, LevelBadge, Stat } from '../components/ui';
 import { ChecksPanel } from '../components/ChecksPanel';
@@ -13,12 +13,11 @@ const r4 = (n: number | null) => (n == null ? '—' : `${n.toFixed(4)}%`);
 
 export function Rates(_: PageProps) {
   const { ds } = useApp();
-  const anomalyDates = new Set(HISTORY_NOTES.filter((n) => n.anomaly).map((n) => n.date));
   const [excludeAnomalies, setExclude] = useState(true);
   const [weekSel, setWeekSel] = useState(ds.latest!.date);
   const [onlyProblems, setOnlyProblems] = useState(true);
 
-  const usable = ds.weeks.filter((w) => w.groupRate != null && !(excludeAnomalies && anomalyDates.has(w.date)));
+  const usable = ds.weeks.filter((w) => w.groupRate != null && !(excludeAnomalies && isAnomalyWeek(w.date)));
   const stats = rateStats(usable.map((w) => w.groupRate!));
   const minWeek = usable.find((w) => w.groupRate === stats.min);
   const maxWeek = usable.find((w) => w.groupRate === stats.max);
@@ -37,7 +36,7 @@ export function Rates(_: PageProps) {
     <div>
       <div className="page-head">
         <div><h1>Rates & Anomalies</h1><div className="muted">True weekly rate = P&L change ÷ previous gross base (Invested + P&L ÷ 0.45)</div></div>
-        <label className="row small"><input type="checkbox" checked={excludeAnomalies} onChange={(e) => setExclude(e.target.checked)} /> Leave anomaly weeks ({[...anomalyDates].map(shortDate).join(', ')}) out of the statistics</label>
+        <label className="row small"><input type="checkbox" checked={excludeAnomalies} onChange={(e) => setExclude(e.target.checked)} /> Leave anomaly weeks ({anomalyLabel(shortDate)}) out of the statistics</label>
       </div>
       <div className="grid cards">
         <Stat label="Average weekly rate" value={r4(stats.mean)} sub={`${stats.count} weeks`} />
