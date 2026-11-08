@@ -63,3 +63,12 @@ describe.skipIf(!existsSync(CSV))('Jun 7 anomaly covers Jun 7 – Jun 28', () =>
     expect(ds.checks.filter((c) => c.level === 'fail').map((c) => c.date)).toEqual([]);
   });
 });
+
+describe.skipIf(!existsSync(CSV))('Sep 6 spike note', () => {
+  const ds = buildDataset(parseHistoryCsv(readFileSync(CSV, 'utf8')));
+  it('the calculated rate is 2.1147% and the note quotes it', async () => {
+    const { HISTORY_NOTES } = await import('../src/lib/notes');
+    expect(ds.weeks.find((w) => w.date === '2026-09-06')!.groupRate!).toBeCloseTo(2.1147, 4);
+    expect(HISTORY_NOTES.find((n) => n.date === '2026-09-06')!.detail).toContain('2.1147%');
+  });
+});

@@ -15,7 +15,7 @@ export const HISTORY_NOTES: HistoryNote[] = [
   },
   { date: '2026-07-26', title: '~$38,924 new deposits', detail: 'About $38,924 went in on Jul 21 (Osama $14,999.99, Subron2 $6,391.53, Junior, Kim, Ved, Toby). Rates were compressed for about 4 weeks afterwards.' },
   { date: '2026-08-30', title: 'Hans withdrew $13,800', detail: 'Hans withdrew $13,800 on 2026-08-25, more than he had deposited, so his Invested shows −$107.90. He has earned about 0.45–0.49× the group rate since.' },
-  { date: '2026-09-06', title: 'Rate spike', detail: 'Weekly rate spike, followed by a slump to the record low on Sep 20.' },
+  { date: '2026-09-06', title: 'Rate spike to 2.1147%', detail: 'Weekly rate spiked to 2.1147%, followed by a slump to the record low on Sep 20.' },
   { date: '2026-09-20', title: 'Record low', detail: 'Lowest weekly rate on record (~0.099%).' },
   { date: '2026-11-08', title: 'Amreen exited; 2 joined', detail: 'Amreen fully exited (withdrew $11,382.58). Pacific and Peter Strugar joined on 2026-11-04.' },
 ];
