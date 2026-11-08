@@ -19,8 +19,12 @@ export function buildDataset(reportsIn: WeekReport[]): Dataset {
   const ledger = mergedLedger(reports);
   const flows = buildFlows(reports, ledger);
   const weeks = computeWeeks(reports, flows);
-  const lastLedgerReport = [...reports].reverse().find((r) => r.ledger.length)?.date ?? '';
-  const checks = reports.map((r, i) => runChecks(r, reports[i - 1], weeks.find((w) => w.date === r.date), weeks, flows, r.date <= lastLedgerReport));
+  const ledgerRep = [...reports].reverse().find((r) => r.ledger.length);
+  const lastLedgerReport = ledgerRep?.date ?? '';
+  // Investors whose ledger entries the latest report leaves out: anyone exited or no longer listed.
+  const everyone = new Set(reports.flatMap((r) => r.investors.map((x) => x.name)));
+  const ledgerOmits = new Set([...everyone].filter((n) => { const x = ledgerRep?.investors.find((y) => y.name === n); return !x || x.exited; }));
+  const checks = reports.map((r, i) => runChecks(r, reports[i - 1], weeks.find((w) => w.date === r.date), weeks, flows, r.date <= lastLedgerReport, ledgerOmits));
   const names = new Set<string>();
   reports.forEach((r) => r.investors.forEach((x) => names.add(x.name)));
   return { reports, flows, weeks, checks, investors: [...names].sort(), latest: reports[reports.length - 1] ?? null };

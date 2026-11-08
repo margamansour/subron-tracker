@@ -35,7 +35,7 @@ export function lowRatioStreak(weeks: WeekCalc[], investor: string, uptoIdx: num
 
 export function runChecks(
   cur: WeekReport, prev: WeekReport | undefined, week: WeekCalc | undefined, weeks: WeekCalc[],
-  flows: Flow[], ledgerCoversDate: boolean,
+  flows: Flow[], ledgerCoversDate: boolean, ledgerOmits: Set<string> = new Set(),
 ): WeekChecks {
   const checks: CheckResult[] = [];
   const prevBy = new Map(prev?.investors.map((x) => [x.name, x]) ?? []);
@@ -65,7 +65,10 @@ export function runChecks(
       }
       if (c.weeklyAvailChange != null) {
         const calc = c.available - p.available;
-        if (Math.abs(calc - c.weeklyAvailChange) > CENT) items.push({ level: 'fail', investor: c.name, text: `${c.name}: report says Available changed ${signedUsd(c.weeklyAvailChange)}, but the difference from last week is ${signedUsd(calc)}` });
+        if (Math.abs(calc - c.weeklyAvailChange) > CENT) items.push({
+          level: c.exited ? 'warn' : 'fail', investor: c.name,
+          text: `${c.name}: report says Available changed ${signedUsd(c.weeklyAvailChange)}, but the difference from last week is ${signedUsd(calc)}${c.exited ? ' — the report shows $0.00 weekly change for fully exited investors' : ''}`,
+        });
       }
     }
     const r = finish(2, 'Reported weekly change = this week − last week', items, `Matches for all ${compared} investors`);
@@ -91,10 +94,11 @@ export function runChecks(
         }
         const gap = moved - ledgerNet;
         if (Math.abs(gap) > CENT) {
-          const exited = c.exited;
+          // The reports drop all ledger entries of investors who have since fully exited.
+          const omitted = c.exited || ledgerOmits.has(name);
           items.push({
-            level: exited || !p ? 'warn' : 'fail', investor: name,
-            text: `${name}: Available − P&L moved ${signedUsd(moved)}, ledger shows ${signedUsd(ledgerNet)} (gap ${signedUsd(gap)})${exited ? ' — exited investors have their ledger entries removed' : ''}`,
+            level: omitted || !p ? 'warn' : 'fail', investor: name,
+            text: `${name}: Available − P&L moved ${signedUsd(moved)}, ledger shows ${signedUsd(ledgerNet)} (gap ${signedUsd(gap)})${omitted ? ` — expected: ${name} has since exited, and the reports remove exited investors' ledger entries` : ''}`,
           });
         } else if (Math.abs(moved) > CENT) items.push({ level: 'ok', investor: name, text: `${name}: ${signedUsd(moved)} matches the ledger` });
       }
